@@ -2,7 +2,7 @@
 Eng : Mohamed Tarek
 Date: 25/8/2019
 Time:9:00 a.m.
-Matrix operations class
+Matrix operations using oop
 */
 
 #include<iostream>
@@ -411,14 +411,14 @@ public:
 	//The second Matrix should be square as we need its inverse to do the division
 	Matrix operator / (Matrix MAT)
 	{
-		if (MAT.rows == MAT.columns)
+		if ( (MAT.rows == MAT.columns) && (columns == MAT.rows) )
 		{
 			Matrix div;
 			div.elements.resize(rows);
 			div.rows = rows;
 			div.columns = columns;
 
-			div = *(this)*(MAT.inverse());
+			div = (*this)*(MAT.inverse());
 			return div;
 		}
 		exit(1);
@@ -452,7 +452,7 @@ ostream& operator <<(ostream& os, Matrix M)
 //Square Matrix
 Matrix pow( Matrix Matri , int powerdegree )
 {
-	if (Matri.rows == Matri.columns)
+	if ( (Matri.rows == Matri.columns) && powerdegree >=1)
 	{
 		Matrix Power;
 		Power.elements.resize(Matri.rows);
@@ -490,6 +490,7 @@ Matrix pow( Matrix Matri , int powerdegree )
 	}
 	exit(1);
 }
+
 
 class ComplexMatrix : public Matrix
 {
@@ -671,7 +672,75 @@ public:
 		exit(1);
 	}
 
+	ComplexMatrix transpose()
+	{
+		ComplexMatrix Trans;
+		Trans.realelements.resize(columns);
+		Trans.imagelements.resize(columns);
+		Trans.rows = columns;
+		Trans.columns = rows;
+
+		for (int i = 0; i < rows; i++)
+		{
+			for (int j = 0; j < columns; j++)
+			{
+				Trans.realelements[j].push_back(realelements[i][j]);
+				Trans.imagelements[j].push_back(imagelements[i][j]);
+			}
+		}
+
+		return Trans;
+
+	}
+
+	friend ComplexMatrix pow(ComplexMatrix, int);
+
 	};
+
+	//Square Matrix
+	ComplexMatrix pow(ComplexMatrix Matri, int powerdegree)
+	{
+		if ( (Matri.rows == Matri.columns) && powerdegree >=1)
+		{
+			ComplexMatrix Power;
+			Power.realelements.resize(Matri.rows);
+			Power.imagelements.resize(Matri.rows);
+			Power.rows = Matri.rows;
+			Power.columns = Matri.columns;
+
+
+			//Initialise the Power Matrix as Identity Matrix
+			for (int i = 0; i < Matri.rows; i++)
+			{
+				for (int j = 0; j < Matri.columns; j++)
+				{
+
+					if (i == j)
+					{
+						Power.realelements[i].push_back(1);
+						Power.imagelements[i].push_back(0);
+					}
+
+					else
+					{
+						Power.realelements[i].push_back(0);
+						Power.imagelements[i].push_back(0);
+					}
+
+				}
+
+			}
+
+			for (int i = 1; i <= powerdegree; i++)
+			{
+				Power = Power * Matri;
+
+			}
+
+			return Power;
+		}
+		exit(1);
+	}
 
 //Needs rows and columns' number
 ostream& operator<<(ostream& OS, ComplexMatrix CompMat)
@@ -701,3 +770,17 @@ ostream& operator<<(ostream& OS, ComplexMatrix CompMat)
 	OS << "]";
 	return OS;
 }
+
+
+
+
+int main()
+	{
+	
+
+
+
+
+
+		return 0;
+	}
