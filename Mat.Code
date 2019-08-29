@@ -1,1 +1,703 @@
+/*
+Eng : Mohamed Tarek
+Date: 25/8/2019
+Time:9:00 a.m.
+Matrix operations class
+*/
 
+#include<iostream>
+#include<math.h>
+#include<stdlib.h>
+#include<cstdlib>
+#include<string>
+#include<vector>
+
+using namespace std;
+
+class Matrix
+{
+protected:
+	int rows;
+	int columns;
+private:
+	vector<vector<double>> elements;
+
+public:
+
+	Matrix()
+	{
+		rows=0 ;
+		columns=0;
+	}
+
+	//set no of rows
+	void numofrows(string input)
+	{
+		for (int i = 0; i < input.length(); i++)
+		{
+			
+			if (input[i] == ';')
+			{
+				rows++;
+			}
+		}
+		rows += 1;
+		
+	}
+
+	//set num of columns	
+	void numofcolumns(string input)
+	{
+
+		string::size_type  index = input.find(";");
+
+		if (index == string::npos)
+		{
+			for (int i = 0; i < input.length(); i++)
+			{
+				if (input[i] == ' ')
+				{
+					columns++;
+				}
+			}
+		}
+		else
+		{
+			for (int i = 0; i < index; i++)
+			{
+				if (input[i] == ' ')
+					columns++;
+			}
+
+		}
+		columns += 1;
+	}
+
+	//Convert the String input into vector to vector <double>
+	void read(string input)
+	{
+		
+		//Setting_num_of_rows
+		numofrows(input);
+		//Setting_num_of_columns
+		numofcolumns(input);
+
+
+		//Making Sure if the columns number is the same in each row
+	
+		int counter = 1;
+		for (int i = 0; i < input.length(); i++)
+		{
+			if (input[i] == ' ')
+				counter++;
+			//To comare the number of columns of each row with the num of columns of first row
+			if (input[i] == ';' || input[i]==']')
+			{
+				//columns is the num of columns in the first row, I used it as a reference
+				if (counter != columns)
+					exit(1);
+
+				counter = 1;
+			}
+		}
+
+		//Converting input_String into 2D <double> vector
+
+		vector <vector<string>> storing_input_asString(rows,vector<string>(columns));
+		int x = 0, y = 0;
+
+		for (int i = 1; i < (input.length())-1; i++)
+		{
+			
+			if (input[i] == ' ')
+			{
+				y++;
+
+			}
+			else if (input[i] == ';')
+			{
+				x++;
+				y = 0;
+				
+			}
+			else
+			{
+				storing_input_asString[x][y] += (input[i]);
+			}
+
+		}
+		
+		elements.resize(rows); //You should initialize the size of vector as if You didnot insert elements to it
+
+		for (int i = 0; i < rows; i++)
+		{
+			for (int j = 0; j < columns; j++)
+			{
+
+				elements[i].push_back(atof(storing_input_asString[i][j].c_str())) ;
+				
+			}
+
+		}
+
+	}
+
+	//Prints out the elements of the input string for check
+	//This fnc needs read fnc before it to convert the string input into vector of vectors<double>
+	void write(string input) 
+	{
+		for (int i = 0; i < rows; i++)
+		{
+			for (int j = 0; j < columns; j++)
+			{
+				cout << endl << elements[i][j];
+			}
+		}
+	}
+
+	Matrix transpose()
+	{
+		Matrix Trans;
+		Trans.elements.resize(columns);
+		Trans.rows = columns;
+		Trans.columns = rows;
+
+		for (int i = 0; i < rows; i++)
+		{
+			for (int j = 0; j < columns; j++)
+			{
+				Trans.elements[j].push_back (elements[i][j]) ;
+			}
+		}
+
+		return Trans;
+
+	}
+
+	friend ostream& operator <<(ostream& , Matrix ); //Prints out the Matrix in the required uniform ( << overloading must be friend )
+	friend Matrix pow(Matrix, int);
+
+	Matrix operator +(Matrix Mat)
+	{
+		if (Mat.rows==rows  && Mat.columns == columns)
+		{
+			Matrix sum;
+			sum.elements.resize(rows); //You should initialize the size of vector as if You didnot insert elements to it
+			sum.rows = rows; //as we need The num of rows of sum in operator << to write the Matrix
+			sum.columns = columns;//as we need The num of columns of sum in operator << to write the Matrix
+
+			for (int i = 0; i < rows; i++)
+			{
+				for (int j = 0; j < columns; j++)
+				{
+					sum.elements[i].push_back(elements[i][j] + Mat.elements[i][j]);
+				}
+			}
+
+			return sum;
+		}
+			exit(1);
+	}
+
+
+	Matrix operator -(Matrix Mat)
+	{
+		if (Mat.rows == rows && Mat.columns==columns)
+		{
+			Matrix diff;
+			diff.elements.resize(rows); //You should initialize the size of vector as if You didnot insert elements to it
+			diff.rows = rows;//as we need The num of rows of diff in operator << to write the Matrix
+			diff.columns = columns;//as we need The num of columns of diff in operator << to write the Matrix
+
+			for (int i = 0; i < rows; i++)
+			{
+				for (int j = 0; j < columns; j++)
+				{
+					diff.elements[i].push_back(elements[i][j] - Mat.elements[i][j]);
+				}
+			}
+
+			return diff;
+		}
+		exit(1);
+	}
+
+
+	Matrix operator * (Matrix Matr)
+	{
+		if (columns==Matr.rows)
+		{
+			Matrix Multi;
+			Multi.elements.resize(rows); //You should initialize the size of vector as if You didnot insert elements to it
+			Multi.rows = rows;//as we need The num of rows of Mukti in operator << to write the Matrix
+			Multi.columns = Matr.columns;//as we need The num of columns of Multi in operator << to write the Matrix
+
+			double sum_help_Multiply_array = 0;
+
+			for (int i = 0; i < rows; i++)
+			{
+				for (int j = 0; j < Matr.columns; j++)
+				{
+
+					for (int k = 0; k < Matr.rows; k++)
+					{
+						sum_help_Multiply_array += (elements[i][k]) * (Matr.elements[k][j]);
+					}
+
+					Multi.elements[i].push_back(sum_help_Multiply_array);
+					sum_help_Multiply_array = 0;
+
+				}
+			}
+
+			return Multi;
+		}
+		exit(1);
+	}
+
+	//Square Matrix
+	//Using Gauss elemination method
+	//WARNING:It canot find the det of Matrix its main diagonal contains 0
+	double det()
+	{
+		if (rows == columns)
+		{
+			double det_help = 1, det_help2 = 1;
+
+			//If Matrix 2x2
+			if (rows == 2 && columns == 2)
+				return (elements[0][0] * elements[1][1]) - (elements[0][1] * elements[1][0]);
+
+			//Matrix size != (2x2)
+			else
+			{
+				for (int i = 0; i < rows; i++)
+				{
+					for (int j1 = 0; j1 < columns; j1++)
+					{
+						//we pass by the elements of main diagonal except last one as there is no number below it to be zeroed
+						if (i == j1 && i != (rows - 1) && j1 != (columns - 1))
+						{
+							//num is the element of Main diagonal
+							double num = elements[i][j1];
+
+							//det_help is the multiplication of the main diagonal elements in the problem
+							det_help *= num;
+
+							for (int j2 = 0; j2 < columns; j2++)
+							{
+								//dividing the elements having same index row as the main diagonal element by main diagonal element
+								//purpose to create 1 so we can multiply it by any number and subtract it from numbers below to make them zeroes
+								elements[i][j2] = elements[i][j2] / num;
+							}
+							for (int i2 = i + 1; i2 < rows; i2++)
+							{
+								//num2 is the numbers below the (main diagonal element) after converting (it) into 1
+								double num2 = elements[i2][j1];
+
+								for (int j2 = 0; j2 < columns; j2++)
+								{
+									//Subtraction we have talked about occurs here 
+									// i is the row at which we use the main diagonal element
+									// i2 is the row after the row at which we stop at the main diagonal element
+									elements[i2][j2] = (elements[i2][j2]) - (elements[i][j2] * num2);
+
+								}
+							}
+						}
+					}
+				}
+
+				for (int i = 0; i < rows; i++)
+				{
+					for (int j = 0; j < columns; j++)
+					{
+						if (i == j)
+						{
+							//After what had done we multiply the main diagonal elements
+							det_help2 *= elements[i][j];
+						}
+					}
+				}
+				//The det. value is that multiply 
+				//det_help is the main diagonal elements in the problem of matrix
+				//det_help2 is the main diagonal elements after the operations had done
+				return (det_help * det_help2);
+
+			}
+		}
+		exit(1);
+
+	}
+
+
+	//Square Matrix
+	//Using Gauss elemination method
+	//WARNING:It canot find the inverse of Matrix its main diagonal contains 0
+	Matrix inverse()
+	{
+		if (rows == columns)
+		{
+			Matrix Inv;
+			Inv.elements.resize(rows);
+			Inv.rows = rows;
+			Inv.columns = columns;
+
+			Matrix InvandIdentity;
+			InvandIdentity.elements.resize(rows);
+			InvandIdentity.rows = rows;
+			InvandIdentity.columns = (2 * columns);
+
+			//Implementing The InvandIdentity Matrix
+			for (int i = 0; i < rows; i++)
+			{
+				for (int j = 0; j < (2 * columns); j++)
+				{
+					if (j < columns)
+					{
+						InvandIdentity.elements[i].push_back(elements[i][j]);
+					}
+					else
+					{
+						if (j == (i + columns))
+							InvandIdentity.elements[i].push_back(1);
+						else
+							InvandIdentity.elements[i].push_back(0);
+					}
+				}
+			}
+
+			//Gaussian Method
+			for (int i = 0; i < rows; i++)
+			{
+				//j is the index which hops between rows that are diff than the row i
+				//This hopping to make the operation in line 385
+				for (int j = 0; j < rows; j++)
+				{
+					if (j != i)
+					{   //num2 is the main diagonal element in InvandIdentity Matrix
+						//num1 is the number to be zeroed
+						double num1 = InvandIdentity.elements[j][i];
+						double num2 = InvandIdentity.elements[i][i];
+
+						for (int k = 0; k < (2 * columns); k++)
+						{
+							InvandIdentity.elements[i][k] = (InvandIdentity.elements[i][k] / num2);
+							InvandIdentity.elements[j][k] = ((InvandIdentity.elements[i][k]) *(-num1)) + (InvandIdentity.elements[j][k]);
+
+						}
+					}
+				}
+			}
+			//Implementing Inv Matrix
+			for (int i = 0; i < rows; i++)
+			{
+				for (int j = 0; j < (2 * columns); j++)
+				{
+
+					if (j >= columns)
+						Inv.elements[i].push_back(InvandIdentity.elements[i][j]);
+
+				}
+			}
+
+			return Inv;
+		}
+		exit(1);
+
+	}
+
+	//Division between two Matrices is the Multiplication of the first one with the inverse of the second one
+	//The second Matrix should be square as we need its inverse to do the division
+	Matrix operator / (Matrix MAT)
+	{
+		if (MAT.rows == MAT.columns)
+		{
+			Matrix div;
+			div.elements.resize(rows);
+			div.rows = rows;
+			div.columns = columns;
+
+			div = *(this)*(MAT.inverse());
+			return div;
+		}
+		exit(1);
+
+	}
+
+};
+
+
+//Friend fnc. to class Matrix prints out the Matrix in required form
+//This fnc needs info. about Matrix as rows and columns
+ostream& operator <<(ostream& os, Matrix M)
+{
+	os << "[";
+	for (int i = 0; i < M.rows; i++)
+	{
+		for (int j = 0; j < M.columns; j++)
+		{
+			os << M.elements[i][j];
+			if (j != (M.columns - 1))
+				os << " ";
+		}
+		if (i != (M.rows - 1))
+			os << ";";
+	}
+	os << "]";
+
+	return os;
+}
+
+//Square Matrix
+Matrix pow( Matrix Matri , int powerdegree )
+{
+	if (Matri.rows == Matri.columns)
+	{
+		Matrix Power;
+		Power.elements.resize(Matri.rows);
+		Power.rows = Matri.rows;
+		Power.columns = Matri.columns;
+
+
+		//Initialise the Power Matrix as Identity Matrix
+		for (int i = 0; i < Matri.rows; i++)
+		{
+			for (int j = 0; j < Matri.columns; j++)
+			{
+
+				if (i == j)
+				{
+					Power.elements[i].push_back(1);
+				}
+
+				else
+				{
+					Power.elements[i].push_back(0);
+				}
+
+			}
+
+		}
+
+		for (int i = 1; i <= powerdegree; i++)
+		{
+			Power = Power * Matri;
+
+		}
+
+		return Power;
+	}
+	exit(1);
+}
+
+class ComplexMatrix : public Matrix
+{
+private:
+	vector<vector<double>> realelements;
+	vector<vector<double>> imagelements;
+
+
+public:
+	//This fnc is called by ComplexMatrix objects,while The first fnc read is called by Matrix objects
+	//Overriding occurs--->(check)
+	void read(string Inputstring)
+	{
+		//setting num of rows and columns of ComplexMatrix
+		numofrows(Inputstring);
+		numofcolumns(Inputstring);
+
+		//Making Sure if the columns number is the same in each row
+
+		int counter = 1;
+		for (int i = 0; i < Inputstring.length(); i++)
+		{
+			if (Inputstring[i] == ' ')
+				counter++;
+			//To comare the number of columns of each row with the num of columns of first row
+			if (Inputstring[i] == ';' || Inputstring[i] == ']')
+			{
+				//columns is the num of columns in the first row, I used it as a reference
+				if (counter != columns)
+					exit(1);
+
+				counter = 1;
+			}
+		}
+
+		vector <vector<string>> storing_realpart_asString(rows, vector<string>(columns));
+		vector <vector<string>> storing_imagpart_asString(rows, vector<string>(columns));
+
+		int x = 0, y = 0;
+
+		for (int i = 1; i < (Inputstring.length()) - 1; i++)
+		{
+
+
+			if ( (Inputstring[i] == '+' || Inputstring[i] == '-') && ( (Inputstring[i-1])=='0' || (Inputstring[i - 1]) == '1' || (Inputstring[i - 1]) == '2' || (Inputstring[i - 1]) == '3' || (Inputstring[i - 1]) == '4' || (Inputstring[i - 1]) == '5' || (Inputstring[i - 1]) == '6' || (Inputstring[i - 1]) == '7' || (Inputstring[i - 1]) == '8' || (Inputstring[i - 1]) == '9')  )
+			{
+
+				while ( Inputstring[i] != 'i')
+				{
+
+					storing_imagpart_asString[x][y] +=(Inputstring[i]);
+					i++;
+					
+				}
+
+			}
+			else if (Inputstring[i] == ' ')
+			{
+				y++;
+
+			}
+			else if (Inputstring[i] == ';')
+			{
+				x++;
+				y = 0;
+
+			}
+			
+			else
+			{
+				storing_realpart_asString[x][y] += (Inputstring[i]);
+				
+			}
+
+		}
+
+			realelements.resize(rows);
+			imagelements.resize(rows);
+
+			for (int i = 0; i < rows; i++)
+			{
+				for (int j = 0; j < columns; j++)
+				{
+
+					realelements[i].push_back(atof(storing_realpart_asString[i][j].c_str())) ;
+					imagelements[i].push_back(atof(storing_imagpart_asString[i][j].c_str()));
+				}
+
+			}
+
+	
+	}
+
+	friend ostream& operator<<(ostream&, ComplexMatrix); //Prints out the Matrix in the required uniform ( << overloading must be friend )
+
+	ComplexMatrix operator +(ComplexMatrix Mat)
+	{
+		if (Mat.rows == rows && Mat.columns == columns)
+		{
+		
+			ComplexMatrix Sum;
+			Sum.realelements.resize(rows);
+			Sum.imagelements.resize(rows);
+			Sum.rows = rows;
+			Sum.columns = columns;
+
+			for (int i = 0; i < rows; i++)
+			{
+				for (int j = 0; j < columns; j++)
+				{
+					Sum.realelements[i].push_back( realelements[i][j] + Mat.realelements[i][j]);
+					Sum.imagelements[i].push_back( imagelements[i][j] + Mat.imagelements[i][j]);
+				}
+			}
+			return Sum;
+		}
+		exit(1);
+	}
+
+	ComplexMatrix operator -(ComplexMatrix Mat)
+	{
+		if (Mat.rows == rows && Mat.columns == columns)
+		{
+
+			ComplexMatrix diff;
+			diff.realelements.resize(rows);
+			diff.imagelements.resize(rows);
+			diff.rows = rows;
+			diff.columns = columns;
+
+			for (int i = 0; i < rows; i++)
+			{
+				for (int j = 0; j < columns; j++)
+				{
+					diff.realelements[i].push_back(realelements[i][j] + Mat.realelements[i][j]);
+					diff.imagelements[i].push_back(imagelements[i][j] + Mat.imagelements[i][j]);
+				}
+			}
+			return diff;
+		}
+		exit(1);
+	}
+
+	ComplexMatrix operator * (ComplexMatrix Matr)
+	{
+		if (columns == Matr.rows)
+		{
+			ComplexMatrix Multi;
+			Multi.realelements.resize(rows); 
+			Multi.imagelements.resize(rows);
+			Multi.rows = rows;
+			Multi.columns = Matr.columns;
+
+			double sum_real_help_Multiply_array = 0;
+			double sum_imag_help_Multiply_array = 0;
+
+			for (int i = 0; i < rows; i++)
+			{
+				for (int j = 0; j < Matr.columns; j++)
+				{
+
+					for (int k = 0; k < Matr.rows; k++)
+					{
+						sum_real_help_Multiply_array +=  ((realelements[i][k]) * (Matr.realelements[k][j])) -((imagelements[i][k]) * (Matr.imagelements[k][j]));
+						sum_imag_help_Multiply_array += ((realelements[i][k]) * (Matr.imagelements[k][j]))+((imagelements[i][k]) * (Matr.realelements[k][j]));
+					}
+
+					Multi.realelements[i].push_back(sum_real_help_Multiply_array);
+					Multi.imagelements[i].push_back(sum_imag_help_Multiply_array);
+					
+					 sum_real_help_Multiply_array = 0;
+					 sum_imag_help_Multiply_array = 0;
+
+				}
+			}
+
+			return Multi;
+		}
+		exit(1);
+	}
+
+	};
+
+//Needs rows and columns' number
+ostream& operator<<(ostream& OS, ComplexMatrix CompMat)
+{
+	OS << "[";
+	for (int i = 0; i < CompMat.rows; i++)
+	{
+		for (int j = 0; j < CompMat.columns; j++)
+		{
+			
+			OS << CompMat.realelements[i][j];
+
+			if ((CompMat.imagelements[i][j]) >= 0)
+				OS << "+" << CompMat.imagelements[i][j];
+			else
+				OS << CompMat.imagelements[i][j];
+			
+			OS << "i";
+
+			if(j!= (CompMat.columns-1))
+				OS << " ";
+		}
+			if(i!= (CompMat.rows-1))
+				OS << ";";
+
+	}
+	OS << "]";
+	return OS;
+}
